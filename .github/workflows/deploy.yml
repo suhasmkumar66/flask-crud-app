@@ -1,25 +1,38 @@
-name: Deploy to Azure
+name: Deploy to Azure Web App
 
 on:
   push:
     branches:
-      - main
+      - main  # Runs the workflow when changes are pushed to main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # ✅ Step 1: Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      # ✅ Step 2: Log in to Docker Hub
+      - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      # ✅ Step 3: Build the Docker image
       - name: Build Docker Image
-        run: docker build -t flask-crud-app .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-crud-app:latest .
 
-      - name: Tag Docker Image
-        run: docker tag flask-crud-app ${{ secrets.DOCKER_USERNAME }}/flask-crud-app:latest
-
+      # ✅ Step 4: Push Docker Image to Docker Hub
       - name: Push Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/flask-crud-app:latest
+
+      # ✅ Step 5: Log in to Azure
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # ✅ Step 6: Restart Azure Web App to use the new image
+      - name: Restart Azure Web App
+        run: |
+          az webapp restart --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
