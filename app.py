@@ -19,7 +19,7 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return "Welcome to the Digilabour application."
+    return "Welcome to the Digilabour backend application."
 
 # Create (POST)
 @app.route("/items", methods=["POST"])
