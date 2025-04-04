@@ -19,7 +19,7 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return "Welcome to the Flask CRUD API!! Use /items to interact."
+    return "Welcome to the Flask CRUD API!!! Use /items to interact."
 
 # Create (POST)
 @app.route("/items", methods=["POST"])
