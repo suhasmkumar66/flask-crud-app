@@ -23,6 +23,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Create tables
+with app.app_context():
+    try:
+        db.create_all()
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {str(e)}")
+
 # User model
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -181,11 +189,21 @@ def debug_db():
 @app.route('/debug/tables')
 def debug_tables():
     try:
-        # Get all table names
-        tables = db.engine.table_names()
+        # Get all table names using inspect
+        inspector = db.inspect(db.engine)
+        tables = inspector.get_table_names()
         return f"Database tables: {tables}"
     except Exception as e:
         return f"Error checking tables: {str(e)}"
+
+@app.route('/debug/create-tables')
+def create_tables():
+    try:
+        with app.app_context():
+            db.create_all()
+            return "Tables created successfully"
+    except Exception as e:
+        return f"Error creating tables: {str(e)}"
 
 if __name__ == '__main__':
     with app.app_context():
