@@ -149,9 +149,21 @@ def delete_note(note_id):
     flash('Note deleted successfully!')
     return redirect(url_for('dashboard'))
 
+@app.route('/debug/db')
+def debug_db():
+    try:
+        db.engine.connect()
+        return "Database connection successful"
+    except Exception as e:
+        return f"Database connection failed: {str(e)}"
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {str(e)}")
     # Only run in development
     if os.getenv('FLASK_ENV') != 'production':
         app.run(debug=True)
