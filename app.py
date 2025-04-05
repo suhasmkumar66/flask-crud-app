@@ -56,20 +56,36 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists')
+        try:
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            if not username or not password:
+                flash('Username and password are required')
+                return redirect(url_for('register'))
+            
+            # Check if user exists
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                flash('Username already exists')
+                return redirect(url_for('register'))
+            
+            # Create new user
+            user = User(username=username)
+            user.set_password(password)
+            
+            # Add to database
+            db.session.add(user)
+            db.session.commit()
+            
+            flash('Registration successful! Please login.')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            db.session.rollback()  # Rollback in case of error
+            print(f"Registration error: {str(e)}")  # Log the error
+            flash('An error occurred during registration. Please try again.')
             return redirect(url_for('register'))
-        
-        user = User(username=username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Registration successful! Please login.')
-        return redirect(url_for('login'))
     
     return render_template('register.html')
 
