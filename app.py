@@ -60,6 +60,8 @@ def register():
             username = request.form.get('username')
             password = request.form.get('password')
             
+            print(f"Attempting to register user: {username}")  # Log registration attempt
+            
             if not username or not password:
                 flash('Username and password are required')
                 return redirect(url_for('register'))
@@ -76,15 +78,18 @@ def register():
             
             # Add to database
             db.session.add(user)
+            print("Attempting to commit user to database...")  # Log before commit
             db.session.commit()
+            print("User successfully committed to database")  # Log after commit
             
             flash('Registration successful! Please login.')
             return redirect(url_for('login'))
             
         except Exception as e:
             db.session.rollback()  # Rollback in case of error
-            print(f"Registration error: {str(e)}")  # Log the error
-            flash('An error occurred during registration. Please try again.')
+            error_msg = f"Registration error: {str(e)}"
+            print(error_msg)  # Log the error
+            flash(f'Registration failed: {str(e)}')  # Show the actual error to user
             return redirect(url_for('register'))
     
     return render_template('register.html')
@@ -172,6 +177,15 @@ def debug_db():
         return "Database connection successful"
     except Exception as e:
         return f"Database connection failed: {str(e)}"
+
+@app.route('/debug/tables')
+def debug_tables():
+    try:
+        # Get all table names
+        tables = db.engine.table_names()
+        return f"Database tables: {tables}"
+    except Exception as e:
+        return f"Error checking tables: {str(e)}"
 
 if __name__ == '__main__':
     with app.app_context():
